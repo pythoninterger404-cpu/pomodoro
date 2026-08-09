@@ -20,13 +20,12 @@ import {
 } from 'lucide-react';
 import { LocalStorage } from './lib/storage';
 import { 
-  auth, 
   isFirebaseEnabled, 
   loginWithGoogle, 
   logoutUser, 
   FirebaseSync 
 } from './lib/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { User, onAuthStateChanged } from './lib/firebase';
 
 // Component Imports
 import { Timer } from './components/Timer';
@@ -150,21 +149,21 @@ export default function App() {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(async (currentUser: User | null) => {
       setUser(currentUser);
       
       if (currentUser) {
         // Sync setting configuration
-        const cloudSettings = await FirebaseSync.loadSettings(currentUser.uid);
+        const cloudSettings = await FirebaseSync.loadSettings(currentUser.id);
         setSettings(cloudSettings);
 
         // Sync tasklist
         const localItems = LocalStorage.getTodos();
-        const syncedItems = await FirebaseSync.syncTodos(currentUser.uid, localItems);
+        const syncedItems = await FirebaseSync.syncTodos(currentUser.id, localItems);
         setTodos(syncedItems);
 
         // Sync history logs
-        const syncedSessions = await FirebaseSync.loadStudySessions(currentUser.uid);
+        const syncedSessions = await FirebaseSync.loadStudySessions(currentUser.id);
         setSessions(syncedSessions);
       } else {
         // Logged out, revert to local only
@@ -181,7 +180,7 @@ export default function App() {
   const saveSettings = async (newSettings: TimerSettings) => {
     setSettings(newSettings);
     if (user) {
-      await FirebaseSync.saveSettings(user.uid, newSettings);
+      await FirebaseSync.saveSettings(user.id, newSettings);
     } else {
       LocalStorage.saveSettings(newSettings);
     }
@@ -199,7 +198,7 @@ export default function App() {
     const updatedTodos = [newTodo, ...todos];
     setTodos(updatedTodos);
     if (user) {
-      await FirebaseSync.syncTodos(user.uid, updatedTodos);
+      await FirebaseSync.syncTodos(user.id, updatedTodos);
     } else {
       LocalStorage.saveTodos(updatedTodos);
     }
@@ -214,7 +213,7 @@ export default function App() {
     });
     setTodos(updated);
     if (user) {
-      await FirebaseSync.syncTodos(user.uid, updated);
+      await FirebaseSync.syncTodos(user.id, updated);
     } else {
       LocalStorage.saveTodos(updated);
     }
@@ -228,7 +227,7 @@ export default function App() {
     const updated = todos.filter(t => t.id !== id);
     setTodos(updated);
     if (user) {
-      await FirebaseSync.syncTodos(user.uid, updated);
+      await FirebaseSync.syncTodos(user.id, updated);
     } else {
       LocalStorage.saveTodos(updated);
     }
@@ -257,7 +256,7 @@ export default function App() {
         });
         setTodos(updated);
         if (user) {
-          await FirebaseSync.syncTodos(user.uid, updated);
+          await FirebaseSync.syncTodos(user.id, updated);
         } else {
           LocalStorage.saveTodos(updated);
         }
@@ -274,7 +273,7 @@ export default function App() {
     };
 
     if (user) {
-      const savedSession = await FirebaseSync.addStudySession(user.uid, sessionPayload);
+      const savedSession = await FirebaseSync.addStudySession(user.id, sessionPayload);
       setSessions(prev => [savedSession, ...prev]);
     } else {
       const savedSession = LocalStorage.addSession(sessionPayload);
