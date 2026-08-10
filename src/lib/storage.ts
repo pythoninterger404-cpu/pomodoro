@@ -19,6 +19,8 @@ const DEFAULT_SETTINGS: TimerSettings = {
   themeBackground: 'linear-gradient(to right, #0f172a, #1e1b4b)',
   themeColor: 'amber' as const,
   notifyOnComplete: true,
+  dailyTarget: 4,
+  customDuration: 60,
 };
 
 export const LocalStorage = {

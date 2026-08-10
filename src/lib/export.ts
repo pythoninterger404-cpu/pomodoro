@@ -5,6 +5,7 @@ const TYPE_LABELS: Record<StudySession['type'], string> = {
   focus: 'Fokus',
   shortBreak: 'Istirahat Pendek',
   longBreak: 'Istirahat Panjang',
+  custom: 'Kustom',
 };
 
 function escapeCSV(value: string): string {

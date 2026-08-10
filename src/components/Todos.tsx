@@ -5,7 +5,7 @@ import { playBtnSound } from '../lib/audio';
 
 interface TodosProps {
   todos: TodoItem[];
-  onAddTodo: (text: string, estimated: number) => void;
+  onAddTodo: (text: string, estimated: number, tag?: string) => void;
   onToggleTodo: (id: string) => void;
   onDeleteTodo: (id: string) => void;
   activeTodoId: string | null;
@@ -15,7 +15,8 @@ interface TodosProps {
 export const Todos: React.FC<TodosProps> = ({ todos, onAddTodo, onToggleTodo, onDeleteTodo, activeTodoId, onSetActiveTodo }) => {
   const [newText, setNewText] = useState('');
   const [estimated, setEstimated] = useState(1);
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (!newText.trim()) return; onAddTodo(newText.trim(), estimated); setNewText(''); setEstimated(1); playBtnSound(); };
+  const [tag, setTag] = useState('Lainnya');
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (!newText.trim()) return; onAddTodo(newText.trim(), estimated, tag); setNewText(''); setEstimated(1); setTag('Lainnya'); playBtnSound(); };
   const done = todos.filter(t => t.completed).length;
 
   return (
@@ -40,6 +41,17 @@ export const Todos: React.FC<TodosProps> = ({ todos, onAddTodo, onToggleTodo, on
               >{num}</button>
             ))}
           </div>
+        </div>
+        <div className="flex items-center justify-between mt-2.5 px-0.5">
+          <span className="text-[11px] text-dim">Kategori</span>
+          <select value={tag} onChange={e => setTag(e.target.value)}
+            className="surface-soft rounded-md px-2 py-1 text-[11px] text-[#c8ccd6] focus:outline-none border border-transparent focus:border-[var(--accent,#d9a441)]/40 transition-colors cursor-pointer">
+            <option value="Kuliah">Kuliah</option>
+            <option value="Kerja">Kerja</option>
+            <option value="Personal">Personal</option>
+            <option value="Olahraga">Olahraga</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
         </div>
       </form>
 

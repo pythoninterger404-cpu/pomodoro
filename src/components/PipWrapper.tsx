@@ -3,7 +3,7 @@ import { MonitorPlay, Play, Pause, Square } from 'lucide-react';
 
 interface PipWrapperProps {
   secondsRemaining: number;
-  timerMode: 'focus' | 'shortBreak' | 'longBreak';
+  timerMode: 'focus' | 'shortBreak' | 'longBreak' | 'custom';
   isActive: boolean;
   onTogglePlay: () => void;
   onReset: () => void;

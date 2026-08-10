@@ -12,6 +12,8 @@ export interface TimerSettings {
   themeBackground: string;
   themeColor: ThemeColor;
   notifyOnComplete: boolean;
+  dailyTarget: number;
+  customDuration: number; // in minutes
 }
 
 export const THEME_COLORS: Array<{ id: ThemeColor; label: string; hex: string }> = [
@@ -30,11 +32,12 @@ export interface TodoItem {
   pomodorosEstimated: number;
   pomodorosCompleted: number;
   createdAt: number;
+  tag?: string;
 }
 
 export interface StudySession {
   id: string;
-  type: 'focus' | 'shortBreak' | 'longBreak';
+  type: 'focus' | 'shortBreak' | 'longBreak' | 'custom';
   duration: number; // in seconds
   timestamp: number; // epoch
   taskId?: string;

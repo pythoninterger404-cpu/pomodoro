@@ -37,14 +37,19 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave }) => {
       {/* Durations */}
       <section>
         <h4 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-faint mb-2.5">Durasi Sesi (menit)</h4>
-        <div className="grid grid-cols-3 gap-2.5">
-          {[{label:'Fokus',k:'focusTime' as const,min:1,max:120},{label:'Break Singkat',k:'shortBreak' as const,min:1,max:45},{label:'Break Panjang',k:'longBreak' as const,min:1,max:60}].map(d =>
+        <div className="grid grid-cols-4 gap-2.5">
+          {[{label:'Fokus',k:'focusTime' as const,min:1,max:120},{label:'Break Singkat',k:'shortBreak' as const,min:1,max:45},{label:'Break Panjang',k:'longBreak' as const,min:1,max:60},{label:'Kustom',k:'customDuration' as const,min:1,max:180}].map(d =>
             <div key={d.k} className="flex flex-col gap-1.5">
-              <label className="text-[11px] text-dim">{d.label}</label>
+              <label className="text-[10px] text-dim truncate">{d.label}</label>
               <input type="number" min={d.min} max={d.max} value={settings[d.k]} onChange={e => { playBtnSound(); set(d.k, Math.max(d.min, Math.min(d.max, parseInt(e.target.value)||d.min))); }}
-                className="w-full surface-soft rounded-lg px-2.5 py-2 text-center text-sm font-medium focus:outline-none focus:border-[var(--accent,#d9a441)]/40 transition-colors" />
+                className="w-full surface-soft rounded-lg px-2 py-2 text-center text-xs font-medium focus:outline-none focus:border-[var(--accent,#d9a441)]/40 transition-colors" />
             </div>
           )}
+        </div>
+        <div className="mt-3 flex flex-col gap-1.5">
+          <label className="text-[11px] text-dim">Target Harian</label>
+          <input type="number" min={1} max={20} value={settings.dailyTarget} onChange={e => { playBtnSound(); set('dailyTarget', Math.max(1, Math.min(20, parseInt(e.target.value)||1))); }}
+            className="w-full surface-soft rounded-lg px-2.5 py-2 text-center text-sm font-medium focus:outline-none focus:border-[var(--accent,#d9a441)]/40 transition-colors" />
         </div>
       </section>
 
