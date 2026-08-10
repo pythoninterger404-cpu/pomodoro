@@ -95,7 +95,7 @@ export default function App() {
   const pomodorosCompleted = sessions.filter(s => s.type==='focus').length;
 
   return (
-    <div className="w-full h-screen flex items-center justify-center p-3 sm:p-6" data-theme={themeColor}>
+    <div className="w-full h-screen flex items-center justify-center" data-theme={themeColor}>
       <div className="surface rounded-2xl w-full max-w-[400px] h-[640px] max-h-[92vh] flex flex-col overflow-hidden">
         <header className="flex items-center justify-between px-4 pt-3.5 pb-2 shrink-0">
           <div className="flex items-center gap-2">
