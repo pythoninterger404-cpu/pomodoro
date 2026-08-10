@@ -1,3 +1,5 @@
+export type ThemeColor = 'amber' | 'rose' | 'teal' | 'blue' | 'violet' | 'monochrome';
+
 export interface TimerSettings {
   focusTime: number; // in minutes
   shortBreak: number; // in minutes
@@ -8,7 +10,17 @@ export interface TimerSettings {
   autoStartBreaks: boolean;
   autoStartPomodoros: boolean;
   themeBackground: string;
+  themeColor: ThemeColor;
 }
+
+export const THEME_COLORS: Array<{ id: ThemeColor; label: string; hex: string }> = [
+  { id: 'amber', label: 'Amber Hangat', hex: '#d9a441' },
+  { id: 'rose', label: 'Rose Lembut', hex: '#d9839e' },
+  { id: 'teal', label: 'Teal Tenang', hex: '#7fa88a' },
+  { id: 'blue', label: 'Biru Senja', hex: '#7a93b8' },
+  { id: 'violet', label: 'Violet Ungu', hex: '#a38bc0' },
+  { id: 'monochrome', label: 'Monokrom', hex: '#9aa0b0' },
+];
 
 export interface TodoItem {
   id: string;

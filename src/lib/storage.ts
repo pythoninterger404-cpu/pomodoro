@@ -16,7 +16,8 @@ const DEFAULT_SETTINGS: TimerSettings = {
   soundTheme: 'soft',
   autoStartBreaks: true,
   autoStartPomodoros: false,
-  themeBackground: 'linear-gradient(to right, #0f172a, #1e1b4b)', // Starry Starry Night
+  themeBackground: 'linear-gradient(to right, #0f172a, #1e1b4b)',
+  themeColor: 'amber' as const,
 };
 
 export const LocalStorage = {
