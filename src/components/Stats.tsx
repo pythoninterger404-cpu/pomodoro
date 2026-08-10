@@ -1,13 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { StudySession, ThemeColor } from '../types';
+import { StudySession, ThemeColor, TodoItem } from '../types';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { getLocalDateString } from '../lib/utils';
-import { Flame, Clock, TrendingUp, Download } from 'lucide-react';
+import { Flame, Clock, TrendingUp, Target, Download } from 'lucide-react';
+import { getTodayFocusCount } from '../lib/target';
+import { getLongestStreak } from '../lib/streak';
 import { exportSessionsCSV } from '../lib/export';
 
 interface StatsProps {
   sessions: StudySession[];
   themeColor: ThemeColor;
+  dailyTarget: number;
+  todos: TodoItem[];
 }
 
 const HEAT_BASE: Record<ThemeColor, string[]> = {
@@ -46,8 +50,24 @@ function fmtDateFull(dateStr: string): string {
   return `${dayName}, ${d} ${MONTH_NAMES[mo - 1]} ${y}`;
 }
 
-export const Stats: React.FC<StatsProps> = ({ sessions, themeColor }) => {
-  const focusSessions = useMemo(() => sessions.filter(s => s.type === 'focus'), [sessions]);
+export const Stats: React.FC<StatsProps> = ({ sessions, themeColor, dailyTarget, todos }) => {
+  const allFocusSessions = useMemo(() => sessions.filter(s => s.type === 'focus'), [sessions]);
+  
+  // Tag filter
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    todos.forEach(t => { if (t.tag) tags.add(t.tag); });
+    return ['Semua', ...Array.from(tags).sort()];
+  }, [todos]);
+  const [selectedTag, setSelectedTag] = useState('Semua');
+  
+  // Filter focusSessions by tag
+  const focusSessions = useMemo(() => {
+    if (selectedTag === 'Semua') return allFocusSessions;
+    const tagTodoIds = new Set(todos.filter(t => t.tag === selectedTag).map(t => t.id));
+    return allFocusSessions.filter(s => s.taskId && tagTodoIds.has(s.taskId));
+  }, [allFocusSessions, selectedTag, todos]);
+  
   const heatColors = HEAT_BASE[themeColor] || HEAT_BASE.amber;
 
   const [heatTip, setHeatTip] = useState<{ text: string; x: number; y: number } | null>(null);
@@ -85,8 +105,30 @@ export const Stats: React.FC<StatsProps> = ({ sessions, themeColor }) => {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto p-4 gap-4 animate-fade-in">
+      {/* Tag filter */}
+      {availableTags.length > 1 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          {availableTags.map(tag => {
+            const isActive = tag === selectedTag;
+            return (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(tag)}
+                className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                  isActive
+                    ? 'text-[#e3e5ea]'
+                    : 'text-faint hover:text-dim surface-soft'
+                }`}
+                style={isActive ? { background: 'var(--accent-15,rgba(217,164,65,0.15))', color: 'var(--accent,#d9a441)' } : {}}
+              >
+                {tag}
+              </button>
+            );
+          })}
+        </div>
+      )}
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-2 gap-2.5">
         <div className="surface-soft rounded-xl p-3">
           <div className="flex items-center gap-1.5 text-faint mb-1"><Clock size={12}/><span className="text-[10px] uppercase tracking-wider">Total Fokus</span></div>
           <div className="text-sm font-semibold text-[#e3e5ea]">{fmtDur(totalSeconds)}</div>
@@ -101,6 +143,16 @@ export const Stats: React.FC<StatsProps> = ({ sessions, themeColor }) => {
           <div className="flex items-center gap-1.5 text-faint mb-1"><TrendingUp size={12}/><span className="text-[10px] uppercase tracking-wider">Bulan Ini</span></div>
           <div className="text-sm font-semibold text-[#e3e5ea]">{fmtDur(monthTotal)}</div>
           <div className="text-[10px] text-faint">{monthName.split(' ')[0]}</div>
+        </div>
+        <div className="surface-soft rounded-xl p-3">
+          <div className="flex items-center gap-1.5 text-faint mb-1"><Target size={12}/><span className="text-[10px] uppercase tracking-wider">Target Hari Ini</span></div>
+          <div className="text-sm font-semibold text-[#e3e5ea]">{getTodayFocusCount(sessions)}/{dailyTarget}</div>
+          <div className="text-[10px] text-faint">{getTodayFocusCount(sessions) >= dailyTarget ? '✅ Tercapai!' : `${dailyTarget - getTodayFocusCount(sessions)} lagi`}</div>
+        </div>
+        <div className="surface-soft rounded-xl p-3 col-span-2">
+          <div className="flex items-center gap-1.5 text-faint mb-1"><span className="text-xs">🔥</span><span className="text-[10px] uppercase tracking-wider">Streak Terbaik</span></div>
+          <div className="text-sm font-semibold text-[#e3e5ea]">{getLongestStreak(sessions)} hari</div>
+          <div className="text-[10px] text-faint">rekor berturut-turut</div>
         </div>
       </div>
 

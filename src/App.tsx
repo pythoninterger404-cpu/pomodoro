@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { TimerSettings, ThemeColor, TodoItem, StudySession } from './types';
 import { Timer as TimerIcon, ListChecks, BarChart3, Settings as SettingsIcon, LogIn, LogOut, Download } from 'lucide-react';
 import { LocalStorage } from './lib/storage';
+import { getTodayFocusCount } from './lib/target';
+import { getCurrentStreak } from './lib/streak';
 import { isFirebaseEnabled, logoutUser, FirebaseSync, User, onAuthStateChanged } from './lib/firebase';
 import { Timer } from './components/Timer';
 import { Todos } from './components/Todos';
@@ -25,7 +27,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(settings.focusTime * 60);
-  const [timerMode, setTimerMode] = useState<'focus' | 'shortBreak' | 'longBreak'>('focus');
+  const [timerMode, setTimerMode] = useState<'focus' | 'shortBreak' | 'longBreak' | 'custom'>('focus');
   const [isActive, setIsActive] = useState(false);
   const [activeTodoId, setActiveTodoId] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -60,10 +62,10 @@ export default function App() {
 
   const saveSettings = async (s: TimerSettings) => { setSettings(s); user ? await FirebaseSync.saveSettings(user.id, s) : LocalStorage.saveSettings(s); };
   const persistTodos = async (ts: TodoItem[]) => { setTodos(ts); user ? await FirebaseSync.syncTodos(user.id, ts) : LocalStorage.saveTodos(ts); };
-  const handleAddTodo = (text: string, est: number) => { void persistTodos([{id:crypto.randomUUID?.()??Math.random().toString(36).substring(2,9),text,completed:false,pomodorosEstimated:est,pomodorosCompleted:0,createdAt:Date.now()},...todos]); };
+  const handleAddTodo = (text: string, est: number, tag?: string) => { void persistTodos([{id:crypto.randomUUID?.()??Math.random().toString(36).substring(2,9),text,completed:false,pomodorosEstimated:est,pomodorosCompleted:0,createdAt:Date.now(),tag:tag||'Lainnya'},...todos]); };
   const handleToggleTodo = (id: string) => { const up = todos.map(t=>t.id===id?{...t,completed:!t.completed}:t); void persistTodos(up); if(activeTodoId===id)setActiveTodoId(null); };
   const handleDeleteTodo = (id: string) => { void persistTodos(todos.filter(t=>t.id!==id)); if(activeTodoId===id)setActiveTodoId(null); };
-  const handleSessionComplete = async (type:'focus'|'shortBreak'|'longBreak',duration:number) => {
+  const handleSessionComplete = async (type:'focus'|'shortBreak'|'longBreak'|'custom',duration:number) => {
     let cid:string|undefined,ctitle:string|undefined;
     if(type==='focus'&&activeTodoId){const at=todos.find(t=>t.id===activeTodoId);if(at){cid=at.id;ctitle=at.text;void persistTodos(todos.map(t=>t.id===activeTodoId?{...t,pomodorosCompleted:t.pomodorosCompleted+1}:t));}}
     const payload={type,duration,timestamp:Date.now(),taskId:cid,taskTitle:ctitle};
@@ -72,6 +74,8 @@ export default function App() {
 
   const activeTask = todos.find(t=>t.id===activeTodoId);
   const pomodorosCompleted = sessions.filter(s=>s.type==='focus').length;
+  const todayFocus = getTodayFocusCount(sessions);
+  const currentStreak = getCurrentStreak(sessions);
 
   return (
     <div className="w-full min-h-screen md:h-screen flex items-center justify-center safe-top safe-bottom" data-theme={themeColor} style={{minHeight:'100dvh'}}>
@@ -108,9 +112,9 @@ export default function App() {
         </nav>
 
         <main className="flex-1 min-h-0 border-t border-white/5">
-          {tab==='timer'&&<Timer settings={settings} activeTodoText={activeTask?activeTask.text:null} onSessionComplete={handleSessionComplete} secondsRemaining={secondsRemaining} setSecondsRemaining={setSecondsRemaining} timerMode={timerMode} setTimerMode={setTimerMode} isActive={isActive} setIsActive={setIsActive} pomodorosCompleted={pomodorosCompleted} soundEnabled={soundEnabled} setSoundEnabled={setSoundEnabled}/>}
+          {tab==='timer'&&<Timer settings={settings} activeTodoText={activeTask?activeTask.text:null} onSessionComplete={handleSessionComplete} secondsRemaining={secondsRemaining} setSecondsRemaining={setSecondsRemaining} timerMode={timerMode} setTimerMode={setTimerMode} isActive={isActive} setIsActive={setIsActive} pomodorosCompleted={pomodorosCompleted} soundEnabled={soundEnabled} setSoundEnabled={setSoundEnabled} todayFocusCount={todayFocus} streak={currentStreak}/>}
           {tab==='todos'&&<Todos todos={todos} onAddTodo={handleAddTodo} onToggleTodo={handleToggleTodo} onDeleteTodo={handleDeleteTodo} activeTodoId={activeTodoId} onSetActiveTodo={setActiveTodoId}/>}
-          {tab==='stats'&&<Stats sessions={sessions} themeColor={themeColor}/>}
+          {tab==='stats'&&<Stats sessions={sessions} themeColor={themeColor} dailyTarget={settings.dailyTarget} todos={todos}/>}
           {tab==='settings'&&<Settings settings={settings} onSave={saveSettings}/>}
         </main>
       </div>

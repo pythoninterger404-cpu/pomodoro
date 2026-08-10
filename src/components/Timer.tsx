@@ -9,28 +9,32 @@ import { PipWrapper } from './PipWrapper';
 interface TimerProps {
   settings: TimerSettings;
   activeTodoText: string | null;
-  onSessionComplete: (type: 'focus' | 'shortBreak' | 'longBreak', duration: number) => void;
+  onSessionComplete: (type: 'focus' | 'shortBreak' | 'longBreak' | 'custom', duration: number) => void;
   secondsRemaining: number;
   setSecondsRemaining: React.Dispatch<React.SetStateAction<number>>;
-  timerMode: 'focus' | 'shortBreak' | 'longBreak';
-  setTimerMode: React.Dispatch<React.SetStateAction<'focus' | 'shortBreak' | 'longBreak'>>;
+  timerMode: 'focus' | 'shortBreak' | 'longBreak' | 'custom';
+  setTimerMode: React.Dispatch<React.SetStateAction<'focus' | 'shortBreak' | 'longBreak' | 'custom'>>;
   isActive: boolean;
   setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
   pomodorosCompleted: number;
   soundEnabled: boolean;
   setSoundEnabled: (enabled: boolean) => void;
+  todayFocusCount: number;
+  streak: number;
 }
 
 const MODE_META = {
   focus: { label: 'Sesi Fokus', short: 'Fokus' },
   shortBreak: { label: 'Break Singkat', short: 'Istirahat' },
   longBreak: { label: 'Break Panjang', short: 'Istirahat Panjang' },
+  custom: { label: 'Kustom', short: 'Kustom' },
 } as const;
 
 const MODE_COLORS: Record<string, string> = {
   focus: 'var(--accent, #d9a441)',
   shortBreak: '#7fa88a',
   longBreak: '#7a93b8',
+  custom: '#a38bc0',
 };
 
 export const Timer: React.FC<TimerProps> = ({
@@ -38,6 +42,7 @@ export const Timer: React.FC<TimerProps> = ({
   secondsRemaining, setSecondsRemaining,
   timerMode, setTimerMode, isActive, setIsActive,
   pomodorosCompleted, soundEnabled, setSoundEnabled,
+  todayFocusCount, streak,
 }) => {
   const lastTickTimeRef = useRef<number | null>(null);
   const [isOvertime, setIsOvertime] = useState(false);
@@ -46,6 +51,7 @@ export const Timer: React.FC<TimerProps> = ({
   const getDuration = (mode: typeof timerMode) => {
     if (mode === 'focus') return settings.focusTime * 60;
     if (mode === 'shortBreak') return settings.shortBreak * 60;
+    if (mode === 'custom') return settings.customDuration * 60;
     return settings.longBreak * 60;
   };
 
@@ -168,7 +174,7 @@ export const Timer: React.FC<TimerProps> = ({
     } else { setTimerMode('focus'); setSecondsRemaining(getDuration('focus')); }
   };
 
-  const switchMode = (mode: 'focus' | 'shortBreak' | 'longBreak') => {
+  const switchMode = (mode: 'focus' | 'shortBreak' | 'longBreak' | 'custom') => {
     playBtnSound();
     setTimerMode(mode);
     setIsActive(false);
@@ -224,6 +230,24 @@ export const Timer: React.FC<TimerProps> = ({
           ) : <span className="text-[11px] text-faint italic">Belum ada tugas aktif yang dipilih</span>
         ) : <span className="text-[11px] text-faint italic">Istirahat sejenak, regangkan badan</span>}
       </div>
+
+      {/* Daily target progress */}
+      <div className="flex flex-col items-center gap-1.5 mb-4">
+        <div className="flex gap-1">
+          {Array.from({ length: settings.dailyTarget }, (_, i) => (
+            <span key={i} className="w-2.5 h-2.5 rounded-full transition-all"
+              style={{ background: i < todayFocusCount ? 'var(--accent, #d9a441)' : '#2b3038' }} />
+          ))}
+        </div>
+        <span className="text-[10px] text-faint">{todayFocusCount} / {settings.dailyTarget} sesi</span>
+      </div>
+
+      {/* Streak */}
+      {streak >= 1 && (
+        <div className="text-[13px] font-medium text-[#e3e5ea] mb-3">
+          🔥 {streak} hari
+        </div>
+      )}
 
       <div className="flex items-center gap-2.5">
         <button onClick={() => { playBtnSound(); setSoundEnabled(!soundEnabled); }}
