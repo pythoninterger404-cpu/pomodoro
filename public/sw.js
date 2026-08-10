@@ -1,14 +1,12 @@
-// Focus Popup Service Worker
-const CACHE = 'focus-popup-v2';
+// Focus Popup Service Worker — v3 (network-first, auto-update)
+const CACHE = 'focus-popup-v3';
 
-self.addEventListener('install', (event) => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE);
-    await cache.add('/');
-    await self.skipWaiting();
-  })());
+// Immediately take control when a new version is detected
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
+// Clean old caches and claim all clients
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
@@ -17,21 +15,43 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
+// Network-first for navigation, cache-first for static assets
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
   event.respondWith((async () => {
-    const cached = await caches.match(event.request);
-    if (cached) return cached;
-    try {
-      const response = await fetch(event.request);
-      if (response.ok) {
-        const clone = response.clone();
-        const cache = await caches.open(CACHE);
-        await cache.put(event.request, clone);
+    // Try network first for HTML navigation
+    if (event.request.mode === 'navigate') {
+      try {
+        const netResp = await fetch(event.request);
+        if (netResp.ok) {
+          const cache = await caches.open(CACHE);
+          cache.put(event.request, netResp.clone());
+        }
+        return netResp;
+      } catch {
+        const cached = await caches.match(event.request);
+        return cached || new Response('Offline — coba lagi saat tersambung internet.', { status: 503 });
       }
-      return response;
-    } catch {
-      return caches.match('/');
     }
+
+    // For assets: cache first, network fallback
+    const cached = await caches.match(event.request);
+    const fetchPromise = fetch(event.request).then(async (netResp) => {
+      if (netResp.ok) {
+        const cache = await caches.open(CACHE);
+        cache.put(event.request, netResp.clone());
+      }
+      return netResp;
+    }).catch(() => null);
+
+    return cached || fetchPromise.then(r => r || new Response('', { status: 504 }));
   })());
+});
+
+// Listen for update message from the page
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
