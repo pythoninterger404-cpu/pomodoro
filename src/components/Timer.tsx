@@ -131,6 +131,21 @@ export const Timer: React.FC<TimerProps> = ({
     setIsActive(!isActive);
   };
 
+  const stopSession = () => {
+    playBtnSound();
+    const elapsed = totalDuration - secondsRemaining;
+    if (timerMode === 'focus' && elapsed > 0) {
+      onSessionComplete('focus', elapsed);
+    }
+    setIsActive(false);
+    setIsOvertime(false);
+    setOvertimeSec(0);
+    const next = timerMode === 'focus'
+      ? (pomodorosCompleted % settings.longBreakInterval === 0 && pomodorosCompleted > 0 ? 'longBreak' : 'shortBreak')
+      : 'focus';
+    setTimerMode(next); setSecondsRemaining(getDuration(next));
+  };
+
   const resetTimer = () => {
     playBtnSound();
     setIsActive(false);
@@ -207,7 +222,7 @@ export const Timer: React.FC<TimerProps> = ({
         ) : <span className="text-[11px] text-faint italic">Istirahat sejenak, regangkan badan</span>}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <button onClick={() => { playBtnSound(); setSoundEnabled(!soundEnabled); }}
           className={`p-2.5 rounded-full transition-all ${soundEnabled ? 'surface-soft text-dim hover:text-[#c8ccd6]' : 'text-faint hover:text-dim'}`}
           title={soundEnabled ? 'Matikan suara detak' : 'Aktifkan suara detak'}>
@@ -215,25 +230,44 @@ export const Timer: React.FC<TimerProps> = ({
         </button>
 
         {isOvertime ? (
-          <button onClick={finishOvertime}
-            className="px-7 py-3 rounded-full font-semibold text-sm tracking-wide transition-all hover:scale-[1.03] active:scale-[0.97] flex items-center gap-2 text-white"
-            style={{ background: '#2ecc71' }}>
-            <CheckCircle size={16} /><span>Selesai</span>
-          </button>
-        ) : (
-          <button onClick={togglePlay} style={{ background: modeColor }}
-            className="px-7 py-3 rounded-full font-semibold text-sm tracking-wide transition-all hover:scale-[1.03] active:scale-[0.97] flex items-center gap-2 text-[#16181d]">
-            {isActive ? <><span className="w-4 h-4 flex items-center justify-center">❚❚</span><span>Jeda</span></>
-              : <><span className="w-4 h-4">▶</span><span>Mulai</span></>}
-          </button>
-        )}
-
-        {isOvertime ? (
-          <button onClick={resetTimer} className="p-2.5 rounded-full surface-soft text-dim hover:text-[#c8ccd6] transition-all" title="Batalkan sesi ini">
-            <RefreshCw size={17} />
-          </button>
+          <>
+            <button onClick={finishOvertime}
+              className="px-7 py-3 rounded-full font-semibold text-sm tracking-wide transition-all hover:scale-[1.03] active:scale-[0.97] flex items-center gap-2 text-white"
+              style={{ background: '#2ecc71' }}>
+              <CheckCircle size={16} /><span>Selesai</span>
+            </button>
+            <button onClick={resetTimer} className="p-2.5 rounded-full surface-soft text-dim hover:text-[#c8ccd6] transition-all" title="Batalkan sesi ini">
+              <RefreshCw size={17} />
+            </button>
+          </>
+        ) : isActive ? (
+          <>
+            <button onClick={togglePlay} style={{ background: modeColor }}
+              className="px-5 py-3 rounded-full font-semibold text-sm tracking-wide transition-all hover:scale-[1.03] active:scale-[0.97] flex items-center gap-2 text-[#16181d]">
+              <span className="w-4 h-4 flex items-center justify-center">❚❚</span><span>Jeda</span>
+            </button>
+            {timerMode === 'focus' && (
+              <button onClick={stopSession}
+                className="px-5 py-3 rounded-full font-semibold text-sm tracking-wide transition-all hover:scale-[1.03] active:scale-[0.97] flex items-center gap-2 text-[#16181d]"
+                style={{ background: '#c98a8a' }}>
+                <span className="w-3.5 h-3.5 flex items-center justify-center">■</span><span>Stop</span>
+              </button>
+            )}
+            <button onClick={skipTimer} className="p-2.5 rounded-full surface-soft text-dim hover:text-[#c8ccd6] transition-all" title="Lewati sesi"><SkipForward size={17} /></button>
+          </>
         ) : (
           <>
+            <button onClick={togglePlay} style={{ background: modeColor }}
+              className="px-5 py-3 rounded-full font-semibold text-sm tracking-wide transition-all hover:scale-[1.03] active:scale-[0.97] flex items-center gap-2 text-[#16181d]">
+              <span className="w-4 h-4">▶</span><span>{secondsRemaining < totalDuration ? 'Lanjut' : 'Mulai'}</span>
+            </button>
+            {timerMode === 'focus' && secondsRemaining < totalDuration && (
+              <button onClick={stopSession}
+                className="px-5 py-3 rounded-full font-semibold text-sm tracking-wide transition-all hover:scale-[1.03] active:scale-[0.97] flex items-center gap-2 text-[#16181d]"
+                style={{ background: '#c98a8a' }}>
+                <span className="w-3.5 h-3.5 flex items-center justify-center">■</span><span>Stop</span>
+              </button>
+            )}
             <button onClick={resetTimer} className="p-2.5 rounded-full surface-soft text-dim hover:text-[#c8ccd6] transition-all" title="Reset sesi"><RefreshCw size={17} /></button>
             <button onClick={skipTimer} className="p-2.5 rounded-full surface-soft text-dim hover:text-[#c8ccd6] transition-all" title="Lewati sesi"><SkipForward size={17} /></button>
           </>
