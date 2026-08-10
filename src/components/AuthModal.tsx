@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Loader2, Chrome } from 'lucide-react';
-import { supabase, loginWithGoogle } from '../lib/firebase';
+import { Mail, Lock, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/firebase';
 
-interface AuthModalProps {
-  onClose: () => void;
-}
+interface AuthModalProps { onClose: () => void; }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -19,7 +17,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     setError(''); setSuccess('');
     if (!email.trim() || !password.trim()) { setError('Email dan password harus diisi.'); return; }
     if (password.length < 6) { setError('Password minimal 6 karakter.'); return; }
-
     setLoading(true);
     try {
       if (mode === 'signup') {
@@ -38,11 +35,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       else if (msg.includes('already registered')) { setError('Email sudah terdaftar. Silakan login.'); setMode('login'); }
       else setError(msg);
     } finally { setLoading(false); }
-  };
-
-  const handleGoogle = async () => {
-    setError('');
-    try { setLoading(true); await loginWithGoogle(); setLoading(false); } catch { setError('Google login gagal atau dibatalkan.'); setLoading(false); }
   };
 
   return (
@@ -69,21 +61,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           <button type="submit" disabled={loading}
             style={{ background: 'var(--accent,#d9a441)' }}
             className="w-full py-2.5 rounded-lg font-semibold text-sm text-[#16181d] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+            {loading && <Loader2 size={16} className="animate-spin" />}
             {mode === 'login' ? 'Masuk' : 'Daftar'}
           </button>
         </form>
-
-        <div className="flex items-center gap-2 my-3">
-          <span className="flex-1 h-px bg-white/10" />
-          <span className="text-[10px] text-faint">atau</span>
-          <span className="flex-1 h-px bg-white/10" />
-        </div>
-
-        <button onClick={handleGoogle} disabled={loading}
-          className="w-full surface-soft py-2.5 rounded-lg flex items-center justify-center gap-2 text-[#e3e5ea] text-sm font-medium hover:border-white/10 transition-colors disabled:opacity-50">
-          <Chrome size={16} /> Lanjutkan dengan Google
-        </button>
 
         <p className="mt-4 text-center text-[11px] text-dim">
           {mode === 'login' ? "Belum punya akun? " : "Sudah punya akun? "}
