@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS: TimerSettings = {
   autoStartPomodoros: false,
   themeBackground: 'linear-gradient(to right, #0f172a, #1e1b4b)',
   themeColor: 'amber' as const,
+  notifyOnComplete: true,
 };
 
 export const LocalStorage = {

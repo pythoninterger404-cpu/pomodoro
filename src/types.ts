@@ -11,6 +11,7 @@ export interface TimerSettings {
   autoStartPomodoros: boolean;
   themeBackground: string;
   themeColor: ThemeColor;
+  notifyOnComplete: boolean;
 }
 
 export const THEME_COLORS: Array<{ id: ThemeColor; label: string; hex: string }> = [

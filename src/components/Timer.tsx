@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { TimerSettings, THEME_COLORS } from '../types';
 import { CheckCircle, RefreshCw, Volume2, VolumeX, SkipForward } from 'lucide-react';
 import { playAlarm, playTick, playBtnSound } from '../lib/audio';
+import { sendNotification } from '../lib/notifications';
 import { formatTime } from '../lib/utils';
 import { PipWrapper } from './PipWrapper';
 
@@ -89,6 +90,7 @@ export const Timer: React.FC<TimerProps> = ({
           if (prev <= delta) {
             if (timerMode === 'focus') {
               playAlarm(settings.soundTheme, settings.soundVolume);
+              if (settings.notifyOnComplete) sendNotification('Sesi Fokus Selesai! 🎯', 'Waktu 25 menit tercapai. Tekan Selesai atau lanjutkan overtime.');
               setIsOvertime(true);
               setOvertimeSec(0);
               return 0;
@@ -110,6 +112,7 @@ export const Timer: React.FC<TimerProps> = ({
   useEffect(() => {
     if (!isActive && !isOvertime && secondsRemaining === 0 && timerMode !== 'focus') {
       playAlarm(settings.soundTheme, settings.soundVolume);
+      if (settings.notifyOnComplete) sendNotification('Istirahat Selesai! ☕', 'Waktunya kembali fokus.');
       onSessionComplete(timerMode, totalDuration);
       cycleMode();
     }

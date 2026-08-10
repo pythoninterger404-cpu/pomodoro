@@ -1,6 +1,7 @@
 import React from 'react';
 import { TimerSettings, THEME_COLORS } from '../types';
 import { playAlarm, playBtnSound } from '../lib/audio';
+import { requestPermission } from '../lib/notifications';
 
 interface SettingsProps { settings: TimerSettings; onSave: (s: TimerSettings) => void; }
 
@@ -78,9 +79,10 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave }) => {
         <div className="flex flex-col gap-2">
           {[
             {label:'Mulai break otomatis',desc:'Langsung masuk sesi istirahat setelah fokus selesai',k:'autoStartBreaks' as const},
-            {label:'Mulai fokus otomatis',desc:'Langsung mulai sesi fokus setelah istirahat selesai',k:'autoStartPomodoros' as const}
+            {label:'Mulai fokus otomatis',desc:'Langsung mulai sesi fokus setelah istirahat selesai',k:'autoStartPomodoros' as const},
+            {label:'Notifikasi selesai',desc:'Kirim notifikasi browser saat sesi selesai (walau tab tidak aktif)',k:'notifyOnComplete' as const},
           ].map(t =>
-            <button key={t.k} onClick={() => { playBtnSound(); set(t.k, !settings[t.k]); }}
+            <button key={t.k} onClick={async () => { playBtnSound(); if (t.k === 'notifyOnComplete' && !settings[t.k]) { const ok = await requestPermission(); if (!ok) return; } set(t.k, !settings[t.k]); }}
               className="flex items-center justify-between w-full surface-soft rounded-xl px-3.5 py-3 text-left transition-colors hover:border-white/10">
               <div><div className="text-sm text-[#e3e5ea]">{t.label}</div><div className="text-[11px] text-faint mt-0.5">{t.desc}</div></div>
               <span className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ml-3 ${settings[t.k] ? '' : 'bg-[#2b3038]'}`}
