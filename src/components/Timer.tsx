@@ -53,10 +53,11 @@ export const Timer: React.FC<TimerProps> = ({
   const modeColor = MODE_COLORS[timerMode];
   const accentHex = THEME_COLORS.find(c => c.id === settings.themeColor)?.hex ?? '#d9a441';
 
-  // Reset overtime + remaining when mode/settings change and timer not running
+  // Reset overtime + remaining when duration settings or mode change (not on pause)
   useEffect(() => {
     if (!isActive) { setIsOvertime(false); setOvertimeSec(0); setSecondsRemaining(totalDuration); }
-  }, [settings.focusTime, settings.shortBreak, settings.longBreak, timerMode, isActive, totalDuration, setSecondsRemaining]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.focusTime, settings.shortBreak, settings.longBreak, timerMode, totalDuration, setSecondsRemaining]);
 
   const cycleMode = () => {
     if (timerMode === 'focus') {
