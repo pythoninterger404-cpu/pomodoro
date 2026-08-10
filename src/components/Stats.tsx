@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { StudySession, ThemeColor } from '../types';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { getLocalDateString } from '../lib/utils';
-import { Flame, Clock, TrendingUp } from 'lucide-react';
+import { Flame, Clock, TrendingUp, Download } from 'lucide-react';
+import { exportSessionsCSV } from '../lib/export';
 
 interface StatsProps {
   sessions: StudySession[];
@@ -180,6 +181,15 @@ export const Stats: React.FC<StatsProps> = ({ sessions, themeColor }) => {
             </div>)}
           </div>}
       </div>
+
+      {/* CSV Export */}
+      <button
+        onClick={() => exportSessionsCSV(sessions)}
+        className="w-full surface-soft rounded-xl p-3.5 flex items-center justify-center gap-2 text-xs font-medium text-[#c8ccd6] hover:text-[#e3e5ea] hover:bg-white/5 transition-all"
+      >
+        <Download size={14} />
+        Ekspor CSV
+      </button>
     </div>
   );
 };
