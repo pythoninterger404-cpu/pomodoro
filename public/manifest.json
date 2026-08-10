@@ -1,0 +1,21 @@
+{
+  "name": "Focus Popup — Pomodoro & Study Tracker",
+  "short_name": "Focus Popup",
+  "description": "Pomodoro timer dan study tracker bergaya widget dengan sinkronisasi cloud",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1a1d24",
+  "background_color": "#16181d",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "education"],
+  "prefer_related_applications": false
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TimerSettings, ThemeColor, TodoItem, StudySession } from './types';
 import { Timer as TimerIcon, ListChecks, BarChart3, Settings as SettingsIcon, LogIn, LogOut } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { LocalStorage } from './lib/storage';
 import { isFirebaseEnabled, logoutUser, FirebaseSync, User, onAuthStateChanged } from './lib/firebase';
 import { Timer } from './components/Timer';
@@ -29,6 +30,29 @@ export default function App() {
   const [isActive, setIsActive] = useState(false);
   const [activeTodoId, setActiveTodoId] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // PWA install prompt
+  const [, setInstallPrompt] = useState<{ prompt: () => Promise<void> } | null>(null);
+  const [installable, setInstallable] = useState(false);
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e as unknown as { prompt: () => Promise<void> }); setInstallable(true); };
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => { setInstallable(false); });
+    // also hide if already in standalone mode
+    if (window.matchMedia('(display-mode: standalone)').matches) setInstallable(false);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+  const handleInstall = async () => {
+    const ev = (window as unknown as Record<string,{prompt:()=>Promise<void>}>)._installPrompt;
+    if (ev) { await ev.prompt(); }
+    setInstallable(false);
+  };
+  // Store the prompt on window so we can access it
+  useEffect(() => {
+    const handler = (e: Event) => { (window as unknown as Record<string,unknown>)._installPrompt = e; };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   const themeColor: ThemeColor = settings.themeColor || 'amber';
 
@@ -77,6 +101,11 @@ export default function App() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full" style={{background:'var(--accent,#d9a441)'}} />
             <h1 className="text-sm font-semibold tracking-tight text-[#e3e5ea]">Focus Popup</h1>
+            {installable && (
+              <button onClick={handleInstall} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full surface-soft text-dim hover:text-[#c8ccd6] transition-colors" title="Install aplikasi ke desktop">
+                <Download size={11} /><span className="hidden min-[380px]:inline">Install</span>
+              </button>
+            )}
           </div>
           {isFirebaseEnabled &&
             (user ? (

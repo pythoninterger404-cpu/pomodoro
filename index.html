@@ -1,13 +1,25 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Focus Popup - Windows-style Pomodoro & Study Tracker</title>
+    <meta name="theme-color" content="#1a1d24" />
+    <meta name="description" content="Pomodoro timer dan study tracker bergaya widget dengan sinkronisasi cloud" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Focus Popup" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Focus Popup — Pomodoro & Study Tracker</title>
   </head>
   <body class="bg-slate-900 text-slate-100 min-h-screen overflow-hidden select-none">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+      }
+    </script>
   </body>
 </html>
